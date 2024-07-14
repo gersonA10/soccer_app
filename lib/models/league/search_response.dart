@@ -1,25 +1,23 @@
 // To parse this JSON data, do
 //
-//     final responseLeague = responseLeagueFromJson(jsonString);
+//     final searchResponseLeague = searchResponseLeagueFromJson(jsonString);
 
 import 'dart:convert';
 
-import 'package:soccer_app/models/league/league_model.dart';
+SearchResponseLeague searchResponseLeagueFromJson(String str) => SearchResponseLeague.fromJson(json.decode(str));
 
-ResponseLeague responseLeagueFromJson(String str) => ResponseLeague.fromJson(json.decode(str));
+String searchResponseLeagueToJson(SearchResponseLeague data) => json.encode(data.toJson());
 
-String responseLeagueToJson(ResponseLeague data) => json.encode(data.toJson());
-
-class ResponseLeague {
-    final String responseLeagueGet;
-    final List<dynamic> parameters;
+class SearchResponseLeague {
+    final String searchResponseLeagueGet;
+    final Parameters parameters;
     final List<dynamic> errors;
     final int results;
     final Paging paging;
-    final List<ResponseAllLeague> response;
+    final List<SearchResponse> response;
 
-    ResponseLeague({
-        required this.responseLeagueGet,
+    SearchResponseLeague({
+        required this.searchResponseLeagueGet,
         required this.parameters,
         required this.errors,
         required this.results,
@@ -27,18 +25,18 @@ class ResponseLeague {
         required this.response,
     });
 
-    factory ResponseLeague.fromJson(Map<String, dynamic> json) => ResponseLeague(
-        responseLeagueGet: json["get"],
-        parameters: List<dynamic>.from(json["parameters"].map((x) => x)),
+    factory SearchResponseLeague.fromJson(Map<String, dynamic> json) => SearchResponseLeague(
+        searchResponseLeagueGet: json["get"],
+        parameters: Parameters.fromJson(json["parameters"]),
         errors: List<dynamic>.from(json["errors"].map((x) => x)),
         results: json["results"],
         paging: Paging.fromJson(json["paging"]),
-        response: List<ResponseAllLeague>.from(json["response"].map((x) => ResponseAllLeague.fromJson(x))),
+        response: List<SearchResponse>.from(json["response"].map((x) => SearchResponse.fromJson(x))),
     );
 
     Map<String, dynamic> toJson() => {
-        "get": responseLeagueGet,
-        "parameters": List<dynamic>.from(parameters.map((x) => x)),
+        "get": searchResponseLeagueGet,
+        "parameters": parameters.toJson(),
         "errors": List<dynamic>.from(errors.map((x) => x)),
         "results": results,
         "paging": paging.toJson(),
@@ -66,18 +64,34 @@ class Paging {
     };
 }
 
-class ResponseAllLeague {
+class Parameters {
+    final String name;
+
+    Parameters({
+        required this.name,
+    });
+
+    factory Parameters.fromJson(Map<String, dynamic> json) => Parameters(
+        name: json["name"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "name": name,
+    };
+}
+
+class SearchResponse {
     final League league;
     final Country country;
     final List<Season> seasons;
 
-    ResponseAllLeague({
+    SearchResponse({
         required this.league,
         required this.country,
         required this.seasons,
     });
 
-    factory ResponseAllLeague.fromJson(Map<String, dynamic> json) => ResponseAllLeague(
+    factory SearchResponse.fromJson(Map<String, dynamic> json) => SearchResponse(
         league: League.fromJson(json["league"]),
         country: Country.fromJson(json["country"]),
         seasons: List<Season>.from(json["seasons"].map((x) => Season.fromJson(x))),
@@ -90,6 +104,89 @@ class ResponseAllLeague {
     };
 }
 
+class Country {
+    final String name;
+    final dynamic code;
+    final dynamic flag;
+
+    Country({
+        required this.name,
+        required this.code,
+        required this.flag,
+    });
+
+    factory Country.fromJson(Map<String, dynamic> json) => Country(
+        name: json["name"],
+        code: json["code"],
+        flag: json["flag"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "name": name,
+        "code": code,
+        "flag": flag,
+    };
+}
+
+class League {
+    final int id;
+    final String name;
+    final String type;
+    final String logo;
+
+    League({
+        required this.id,
+        required this.name,
+        required this.type,
+        required this.logo,
+    });
+
+    factory League.fromJson(Map<String, dynamic> json) => League(
+        id: json["id"],
+        name: json["name"],
+        type: json["type"],
+        logo: json["logo"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "id": id,
+        "name": name,
+        "type": type,
+        "logo": logo,
+    };
+}
+
+class Season {
+    final int year;
+    final DateTime start;
+    final DateTime end;
+    final bool current;
+    final Coverage coverage;
+
+    Season({
+        required this.year,
+        required this.start,
+        required this.end,
+        required this.current,
+        required this.coverage,
+    });
+
+    factory Season.fromJson(Map<String, dynamic> json) => Season(
+        year: json["year"],
+        start: DateTime.parse(json["start"]),
+        end: DateTime.parse(json["end"]),
+        current: json["current"],
+        coverage: Coverage.fromJson(json["coverage"]),
+    );
+
+    Map<String, dynamic> toJson() => {
+        "year": year,
+        "start": "${start.year.toString().padLeft(4, '0')}-${start.month.toString().padLeft(2, '0')}-${start.day.toString().padLeft(2, '0')}",
+        "end": "${end.year.toString().padLeft(4, '0')}-${end.month.toString().padLeft(2, '0')}-${end.day.toString().padLeft(2, '0')}",
+        "current": current,
+        "coverage": coverage.toJson(),
+    };
+}
 
 class Coverage {
     final Fixtures fixtures;
@@ -165,16 +262,4 @@ class Fixtures {
         "statistics_fixtures": statisticsFixtures,
         "statistics_players": statisticsPlayers,
     };
-}
-
-class EnumValues<T> {
-    Map<String, T> map;
-    late Map<T, String> reverseMap;
-
-    EnumValues(this.map);
-
-    Map<T, String> get reverse {
-            reverseMap = map.map((k, v) => MapEntry(v, k));
-            return reverseMap;
-    }
 }
